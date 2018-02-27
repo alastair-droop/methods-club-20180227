@@ -2,6 +2,16 @@
 
 This is an example of the basic steps I go through to process a pair of FASTQ files for downstream analysis. In this example, I am assuming that we have received a pair of human `.fastq.gz` files from the local Illumina sequencer and that they have been processed in the standard manner.
 
+## Setup
+
+We will be using two test files (`test-1.fastq.gz` and `test-2.fastq.gz`). Hopefully, your files will be much bigger in practice. However, the logic of the code below is the same.
+
+To start, we need to open a terminal and go to the example folder:
+
+~~~bash
+cd example
+~~~
+
 ## Basic Validation & Statistics
 
 The first step is to identify the files we have. As a minimum we need to:
@@ -18,8 +28,8 @@ After securing, renaming and backing up the files, we can check them for validit
 * [fastq-metadata](https://github.com/alastair-droop/fastq-metadata) to extract run & index data from the file headers.
 
 ~~~bash
-fqtools count test-1.fastq.gz test-2.fastq.gz
-fastq-metadata test-1.fastq.gz test-2.fastq.gz
+fqtools count fastq/test-1.fastq.gz fastq/test-2.fastq.gz
+fastq-metadata fastq/test-1.fastq.gz fastq/test-2.fastq.gz
 ~~~
 
 The first command does several things: it checks that both files are valid, it makes sure that they are correctly paired, and it tells us how many reads there are in each file. The second command simply reads out the metadata from the first header of each file. We should record these data for later reference.
@@ -29,8 +39,8 @@ The first command does several things: it checks that both files are valid, it m
 Before we perform any cleaning on the data, it is useful to take a look at the files. We can then compare these QC data to those collected after cleaning to assess how useful the cleaning has been. We use [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) do perform the QC checks:
 
 ~~~bash
-fastqc --noextract --nogroup --quiet --format=fastq --outDir=./qc test-1.fastq.gz
-fastqc --noextract --nogroup --quiet --format=fastq --outDir=./qc test-2.fastq.gz
+fastqc --noextract --nogroup --quiet --format=fastq --outDir=./qc fastq/test-1.fastq.gz
+fastqc --noextract --nogroup --quiet --format=fastq --outDir=./qc fastq/test-2.fastq.gz
 ~~~
 
 Once we've generated the FastQC data, we should look through it for any mission-critical errors. Remember that the cleaning we're about to perform will remove many of these errors.
@@ -51,13 +61,13 @@ To run Cutadapt, we need to specify the sequences of the adapters that were used
 ADAPTER_5=AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
 ADAPTER_3=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
 
-cutadapt -q20 -m20 -n10 -a$ADAPTER_5 -A$ADAPTER_3 -otest-trimmed-1.fastq.gz -ptest-trimmed-2.fastq.gz test-1.fastq.gz test-2.fastq.gz > test-cutadapt.log
+cutadapt -q20 -m20 -n10 -a$ADAPTER_5 -A$ADAPTER_3 -ofastq/test-trimmed-1.fastq.gz -pfastq/test-trimmed-2.fastq.gz fastq/test-1.fastq.gz fastq/test-2.fastq.gz > qc/test-cutadapt.log
 ~~~
 
 We can now use [cutadapt-stats](https://github.com/alastair-droop/cutadapt-stats) to pull out the overview statistics from the log file:
 
 ~~~bash
-cutadapt-stats -c test-cutadapt.log > test-cutadapt.csv
+cutadapt-stats -c qc/test-cutadapt.log > qc/test-cutadapt.csv
 ~~~
 
 ## Post-Cleaning QC
@@ -65,7 +75,6 @@ cutadapt-stats -c test-cutadapt.log > test-cutadapt.csv
 After running cutadapt, it is good practice to re-run the FastQC step so that we can check if we've done enough cleaning:
 
 ~~~bash
-fastqc --noextract --nogroup --quiet --format=fastq --outDir=./qc test-trimmed-1.fastq.gz
-fastqc --noextract --nogroup --quiet --format=fastq --outDir=./qc test-trimmed-2.fastq.gz
+fastqc --noextract --nogroup --quiet --format=fastq --outDir=./qc fastq/test-trimmed-1.fastq.gz
+fastqc --noextract --nogroup --quiet --format=fastq --outDir=./qc fastq/test-trimmed-2.fastq.gz
 ~~~
-

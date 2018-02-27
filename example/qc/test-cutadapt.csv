@@ -1,0 +1,3 @@
+"id","file","type","r_total","b_total","r_out","b_out","r_adapt","r_rm_long","r_rm_short","r_rm_other","b_rm_adapt","b_rm_qual","b_rm_other"
+"cutadapt-1","cutadapt","pair_1","100000","15100000","99321","13004219","54211","0","679","0","1964113","125120","6548"
+"cutadapt-2","cutadapt","pair_2","100000","15100000","99321","12906404","53146","0","679","0","1898836","294406","354"
